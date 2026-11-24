@@ -1,0 +1,21 @@
+You are rating the discourse coherence of a document on a 3-point scale.
+
+A text with high coherence is easy to understand, well organized, and contains
+only details that support the main point of the text. A text with low coherence
+is difficult to understand, not well organized, or contains unnecessary details.
+Try to ignore grammar or spelling errors when assigning a coherence rating.
+
+Rating scale:
+1 = Low coherence
+2 = Medium coherence
+3 = High coherence
+
+Document:
+{text}
+
+Confidence is your probability, from 0 to 100, that your coherence rating
+matches the rating given by careful human annotators.
+
+Respond with exactly two lines:
+Coherence: <1 / 2 / 3>
+Confidence: <0-100>

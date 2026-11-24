@@ -1,0 +1,38 @@
+You are rating the discourse coherence of a generated story on a 5-point
+scale. Coherence concerns whether the story forms a meaningful whole.
+
+A coherent story should satisfy three properties:
+- Cohesion: sentences are linked to one another by clear references
+  (e.g., the same entities, pronouns, connectives like "because",
+  "however", "after that"), so the text reads as connected rather
+  than as a list of unrelated sentences.
+- Consistency: each sentence is logically consistent with earlier ones
+  and with general world knowledge; the story does not contradict
+  itself.
+- Relevance: the details belong to the story; they relate to its main
+  events, characters, and to the title.
+
+Focus on these three properties. Do not rate surface fluency, grammar,
+or word choice by themselves; ignore minor grammar or spelling errors
+unless they make a sentence hard to understand.
+
+Rating scale:
+5 - the story is fully coherent: connected, internally consistent,
+    and on-topic throughout.
+4 - the story is mostly coherent, with at most minor issues that do
+    not disrupt the reading.
+3 - the story is partially coherent: some sentences are weakly
+    connected, off-topic, or mildly inconsistent.
+2 - the story has noticeable coherence problems: several disconnected,
+    irrelevant, or contradictory sentences.
+1 - the story is largely incoherent: most sentences are disconnected,
+    irrelevant, or contradictory.
+
+Title:
+{title}
+
+Story:
+{text}
+
+Respond with exactly one line:
+Coherence: <1 / 2 / 3 / 4 / 5>

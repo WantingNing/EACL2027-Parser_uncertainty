@@ -1,0 +1,27 @@
+You are rating the discourse coherence of a document on a 3-point scale.
+
+A text with high coherence is easy to understand, well organized, and contains
+only details that support the main point of the text. A text with low coherence
+is difficult to understand, not well organized, or contains unnecessary details.
+Try to ignore grammar or spelling errors when assigning a coherence rating.
+
+Rating scale:
+1 = Low coherence
+2 = Medium coherence
+3 = High coherence
+
+Document:
+{text}
+
+Automatic RST parser confidence summary:
+- Number of internal RST nodes: {rst_n_internal_nodes}
+- Mean relation entropy: {rst_relation_entropy}
+- Mean top-1 relation probability: {rst_top1}
+- Mean top-1/top-2 margin: {rst_margin}
+
+These parser confidence values are noisy auxiliary signals, not gold
+annotations. Lower entropy and higher top-1 probability/margin usually indicate
+more recoverable discourse structure.
+
+Respond with exactly one line:
+Coherence: <1 / 2 / 3>

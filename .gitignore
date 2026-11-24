@@ -1,0 +1,15 @@
+# Datasets are not redistributed; see README.
+/data/
+/assets/
+
+# Parser outputs, LLM responses and features are attached to the GitHub release.
+/parser-uncertainty/data/
+/results/
+
+# Outputs of the experiments
+/cache/
+/runs/
+*.pt
+
+__pycache__/
+*.pyc

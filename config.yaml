@@ -1,0 +1,119 @@
+# All experiment parameters. Run from this directory:  python experiments/run.py <recipe>
+# Paths are relative to this file.
+
+paths:
+  gcdc: data/GCDC
+  cohesentia: data/CoheSentia
+  prepared: data/prepared                                    # baseline inputs
+  rst_parser: parser-uncertainty/data/parsers/rst/isanlp-rstdt
+  llm_inputs: data/llm/inputs
+  llm_reference: data/llm/reference
+  prompts: experiments/prompts
+  text_difficulty: results/parser_confidence/text_difficulty_features.jsonl
+  glove: assets/glove.840B.300d.txt                          # GloVe 840B 300d, used by RelCoh
+  rel_embed: models/entyrelcoh/data/embeddings/rel_embed_glove.pkl
+  cache: cache
+  runs: runs
+
+seeds: [106524]
+
+# Folds and dataset-specific hyperparameters.
+datasets:
+  gcdc_clinton: {prefix: clinton, folds: 10, reco: {dropout: 0.1, patience: 3},
+                 entyrelcoh: {learning_rate: 5.0e-4, dropout: 0.2, max_sent_num: 25, max_rel_num: 64}}
+  gcdc_enron:   {prefix: enron, folds: 10, reco: {dropout: 0.1, patience: 3},
+                 entyrelcoh: {learning_rate: 5.0e-4, dropout: 0.2, max_sent_num: 15, max_rel_num: 36}}
+  gcdc_yahoo:   {prefix: yahoo, folds: 10, reco: {dropout: 0.2, patience: 5},
+                 entyrelcoh: {learning_rate: 1.0e-3, dropout: 0.1, max_sent_num: 25, max_rel_num: 64}}
+  gcdc_yelp:    {prefix: yelp, folds: 10, reco: {dropout: 0.3, patience: 5},
+                 entyrelcoh: {learning_rate: 1.0e-3, dropout: 0.2, max_sent_num: 15, max_rel_num: 36}}
+  cohesentia:   {prefix: cohe, folds: 5, reco: {dropout: 0.1, patience: 5, cohesentia_tau_c: 1.0},
+                 entyrelcoh: {learning_rate: 1.0e-3, dropout: 0.2, max_sent_num: 25, max_rel_num: 64}}
+
+# Settings of models/reco/train.py (ReCo, Text and the ablations), in groups that are merged.
+# Precedence: reco_trainer -> datasets.<dataset>.reco -> variants.<model>
+reco_trainer:
+  text_encoder: {model_name: roberta-base, max_length: 512, window_stride: 448, freeze_encoder: true,
+                 text_pooling: mean, use_precomputed_text_features: true, text_cache_batch_size: 32,
+                 rebuild_text_cache: false, use_rst_tensor_cache: true}
+  training: {experiment_mode: in_domain, source_prefix: [], epochs: 20, batch_size: 32, eval_batch_size: 128,
+             encoder_lr: 0.0, other_lr: 1.0e-4, head_lr: 1.0e-3, weight_decay: 0.1, warmup_ratio: 0.06,
+             gradient_accumulation_steps: 1, gradient_clip: 2.0, use_amp: false, num_workers: 0,
+             eval_every_epochs: 1, selection_metric: argmax_accuracy, save_best_model: false,
+             dump_predictions: true, cuda_id: 0}
+  model_size: {d_model: 64, text_hidden_dim: 256, classifier_hidden_size: 256, treeformer_layers: 1,
+               treeformer_heads: 2, treeformer_bias_dim: 32, treeformer_ffn_multiplier: 4, tree_dist_cap: 8,
+               max_path_depth: 64}
+  # Inputs of full ReCo; the variants below switch some of them off.
+  parser_inputs: {use_text_branch: true, use_treeformer_branch: true, use_parser_profile: true,
+                  parser_profile_mode: all, parser_confidence_mode: original, use_topology_features: true,
+                  use_node_non_entropy_parser_stats: true, use_relation_uncertainty_bias: true,
+                  use_parser_dropout: true, use_doc_entropy_features: true, use_distance_bias: true,
+                  use_ancestor_bias: true, use_subtree_bias: true, node_entropy_mode: original,
+                  node_entropy_source: relation, unordered_tree: false, parser_lambda: 0.25,
+                  beta_h_rel: 0.0, beta_confidence: 0.0, beta_margin: 0.0, beta_ambiguity: 0.0, beta_rri: 1.0}
+  # Trainer options the paper keeps fixed: relation-label inputs off, auxiliary loss weight 0.
+  fixed: {use_comp_branch: false, use_relation_distribution: false, use_relation_embedding: false,
+          use_source_relation_bias: false, use_span_states: false, use_nuclearity_embedding: false,
+          use_path_features: false, use_doc_relation_histogram: false, relation_embedding_dim: 32,
+          nuclearity_embedding_dim: 16, path_embedding_dim: 32, relation_label_dropout: 0.3,
+          relation_dist_dropout: 0.2, use_label_au: true, use_boundary_au: true, boundary_tau: 0.4,
+          boundary_rho: 0.3, uncertainty_warmup_epochs: 5, uncertainty_anneal_epochs: 5,
+          uncertainty_lambda_max: 0.0}
+
+# Models trained with models/reco/train.py: the main model, the text baseline and the ablations.
+variants:
+  reco: {}
+  text_only: {use_treeformer_branch: false, use_parser_profile: false, patience: 5}
+  text_profile: {use_treeformer_branch: false, parser_profile_mode: confidence}
+  text_tree: {use_parser_profile: false}
+  rst_only: {use_text_branch: false, parser_profile_mode: confidence}
+  text_topology: {use_parser_profile: false, parser_confidence_mode: zero, use_node_non_entropy_parser_stats: false,
+                  use_relation_uncertainty_bias: false, use_parser_dropout: false}
+  text_structure: {parser_confidence_mode: uniform}
+
+# Baselines (dataset-specific EntyRelCoh values are under datasets).
+entyrelcoh_trainer: {model_type: fusion, model_name_or_path: roberta-base, label_list: "1, 2, 3", max_text_length: 512,
+                     num_train_epochs: 25, train_batch_size: 32, eval_batch_size: 8, dump_best_metric: dev_acc,
+                     do_train: true, dump_predictions: true}
+relcoh_trainer: {model_type: transformer_sent_rel_fusion, model_name_or_path: roberta-base, label_list: "1, 2, 3",
+                 num_train_epochs: 20, learning_rate: 1.0e-3, dropout: 0.1, train_batch_size: 32, eval_batch_size: 48,
+                 dump_best_metric: dev_acc, do_train: true, dump_predictions: true}
+
+# Probability interpolation (1 - alpha) * left + alpha * right.
+# "weighted" picks alpha on the dev split (smallest alpha wins ties); "equal" uses 0.5.
+ensemble:
+  objective: accuracy
+  alpha_step: 0.001
+  pairs: {text_reco: [text_only, reco], entyrelcoh_reco: [entyrelcoh, reco], relcoh_reco: [relcoh, reco],
+          text_entyrelcoh: [entyrelcoh, text_only], text_relcoh: [relcoh, text_only],
+          entyrelcoh_relcoh: [entyrelcoh, relcoh]}
+
+# Text-difficulty features (n words/sentences/EDUs, word length, MTLD, sentence length,
+# dependency depth, LM surprisal).
+text_difficulty: {spacy_model: en_core_web_sm, lm: meta-llama/Llama-3.1-8B, max_tokens: 2048}
+
+# Zero-shot LLM judgments. Greedy decoding; the self-confidence prompt has two output lines.
+llm:
+  shuffle_seed: 42
+  hf_dtype: bfloat16                                    # local models, loaded with device_map=auto
+  generation: {max_new_tokens: 16, temperature: 0.0, top_p: 1.0}
+  self_confidence_max_new_tokens: 32
+  models:
+    llama31_8b: {provider: hf, model_id: meta-llama/Llama-3.1-8B-Instruct}
+    qwen25_7b: {provider: hf, model_id: Qwen/Qwen2.5-7B-Instruct}
+    mistral7b_v03: {provider: hf, model_id: mistralai/Mistral-7B-Instruct-v0.3}
+    gpt4o_mini: {provider: openai, model_id: gpt-4o-mini}
+    gpt4o: {provider: openai, model_id: gpt-4o}
+
+# python experiments/run.py <recipe>. "all" means every entry above.
+recipes:
+  cache: {step: cache, datasets: all}                    # run before any training
+  main: {step: train, models: [reco, text_only, entyrelcoh, relcoh], datasets: all}
+  ablations: {step: train, models: [text_profile, text_tree, rst_only, text_topology, text_structure],
+              datasets: [cohesentia]}
+  ensembles: {step: ensemble, pairs: all, modes: [equal, weighted], datasets: all}
+  text_difficulty: {step: text_difficulty}
+  llm_inputs: {step: llm_inputs}
+  llm: {step: llm_inference, models: all, prompts: [default, rst_confidence, self_confidence]}
+  llm_shuffled: {step: llm_inference, models: [llama31_8b, mistral7b_v03, qwen25_7b], prompts: [shuffled_confidence]}
