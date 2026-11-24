@@ -55,13 +55,15 @@ CoheSentia's five-point scores are mapped to three classes: 1-2 Low, 3-4 Medium,
 
 ## Released outputs
 
-The [release](../../releases) contains the outputs used in the paper. Unpack them into:
+The outputs used in the paper. The parser and LLM outputs contain the document text, so they are on
+[Hugging Face](https://huggingface.co/datasets/WillaNing/EACL2027-Parser_uncertainty-outputs) with access granted
+to those who already have GCDC.
 
-| File | Location | Content |
-|---|---|---|
-| `parsers.tar.gz` | `parser-uncertainty/data/parsers/` | RST-DT and GUM-RRG parses ([IsaNLP-RST](https://github.com/tchewik/isanlp_rst) 3.2.0), PDTB parses ([DisCoPy](https://github.com/rknaebel/discopy)) |
-| `llm_predictions.tar.gz` | `results/llm/predictions/` | responses of the five LLMs for every prompt variant |
-| `text_difficulty_features.jsonl` | `results/parser_confidence/` | text-difficulty features |
+| File | Download | Unpack into | Content |
+|---|---|---|---|
+| `parsers.tar.gz` | Hugging Face | `parser-uncertainty/data/parsers/` | RST-DT and GUM-RRG parses ([IsaNLP-RST](https://github.com/tchewik/isanlp_rst) 3.2.0), PDTB parses ([DisCoPy](https://github.com/rknaebel/discopy)) |
+| `llm_predictions.tar.gz` | Hugging Face | `results/llm/predictions/` | responses of the five LLMs for every prompt variant |
+| `text_difficulty_features.jsonl` | [release](../../releases) | `results/parser_confidence/` | text-difficulty features |
 
 To parse the documents yourself (GPU recommended):
 
