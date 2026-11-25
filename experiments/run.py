@@ -1,3 +1,4 @@
+import json
 import os
 import shlex
 import subprocess
@@ -5,12 +6,14 @@ import sys
 from itertools import product
 from pathlib import Path
 
+import numpy as np
 import yaml
 
 import llm_inference
 import llm_inputs
 import text_difficulty
-from ensemble import BASELINES, prediction_path, run_ensemble
+from ensemble import (BASELINES, METRICS, compute_metrics, prediction_path, read_predictions, run_ensemble,
+                      summarize, write_csv)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -124,6 +127,25 @@ def train_fold(config, model, dataset, seed, fold):
     subprocess.run(command, cwd=cwd, env=trainer_env(config), check=True)
 
 
+def write_cv_summary(config, model, dataset, seed):
+    # The trainers run one fold per process, so their own summary files cover only the last fold.
+    # This recomputes the test metrics of every fold from the saved predictions and averages them.
+    model_dir = train_dir(config, dataset, seed) / model
+    fold_rows = []
+    for fold in range(1, config["datasets"][dataset]["folds"] + 1):
+        predictions = read_predictions(prediction_path(train_dir(config, dataset, seed), model, dataset, fold, "test"), model)
+        keys = sorted(predictions)
+        gold = np.array([key[1] for key in keys])
+        probs = np.stack([predictions[key] for key in keys])
+        fold_rows.append({"fold": fold, "n": len(gold), **compute_metrics(gold, probs)})
+    write_csv(model_dir / "cv_fold_metrics.csv", fold_rows)
+    summary = {"dataset": dataset, "model": model, "seed": seed, "folds": len(fold_rows),
+               "metrics": {name: summarize([row[name] for row in fold_rows]) for name in METRICS}}
+    with open(model_dir / "cv_summary.json", "w", encoding="utf-8") as handle:
+        json.dump(summary, handle, indent=2)
+    print(f"{dataset} {model} seed {seed}: mean test accuracy {summary['metrics']['accuracy']['mean']:.4f}", flush=True)
+
+
 def build_cache(config, dataset):
     # Builds the graph, text-vector and RST-tensor caches with full-ReCo settings, without training,
     # so that every training run starts from existing caches.
@@ -146,6 +168,7 @@ def run_train(config, recipe):
     for seed, dataset, model in product(config["seeds"], datasets, recipe["models"]):
         for fold in range(1, config["datasets"][dataset]["folds"] + 1):
             train_fold(config, model, dataset, seed, fold)
+        write_cv_summary(config, model, dataset, seed)
 
 
 def run_ensembles(config, recipe):

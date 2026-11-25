@@ -100,10 +100,14 @@ Training uses seed 106524, one process per fold, and selects checkpoints on dev 
 weights are always selected on the dev split. Outputs go to `runs/`:
 
 ```
-runs/train/seed_<seed>/<dataset>/<model>/...            per-fold predictions and metrics
-runs/ensembles/seed_<seed>/<dataset>/<pair>/<mode>/     ensemble predictions and summary.json
-runs/llm/predictions/<model>[_<prompt>].jsonl           LLM responses
+runs/train/seed_<seed>/<dataset>/<model>/...              per-fold predictions and metrics
+runs/train/seed_<seed>/<dataset>/<model>/cv_summary.json  test metrics averaged over folds
+runs/ensembles/seed_<seed>/<dataset>/<pair>/<mode>/       ensemble predictions and summary.json
+runs/llm/predictions/<model>[_<prompt>].jsonl             LLM responses
 ```
+
+Each fold runs in its own process, so the trainers' own `summary.json` covers only the last fold;
+`cv_summary.json` has the mean over all folds.
 
 A new experiment is a new entry under `variants`, `ensemble.pairs` or `recipes` in `config.yaml`.
 
