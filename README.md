@@ -31,7 +31,7 @@ Only needed for some steps:
 - RST parsing: `isanlp_rst`, `isanlp`, `razdel`
 - text-difficulty features: `spacy` with `en_core_web_sm`
 - local LLMs: `accelerate`; GPT models: `openai` and `OPENAI_API_KEY`
-- RelCoh: [GloVe](https://nlp.stanford.edu/projects/glove/) 840B 300d at `assets/glove.840B.300d.txt` (or set `paths.glove` in `config.yaml`)
+- EntyRelCoh and RelCoh: [GloVe](https://nlp.stanford.edu/projects/glove/) 840B 300d at `assets/glove.840B.300d.txt` (or set `paths.glove` in `config.yaml`)
 
 ## Data
 

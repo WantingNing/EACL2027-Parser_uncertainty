@@ -10,7 +10,7 @@ paths:
   llm_reference: data/llm/reference
   prompts: experiments/prompts
   text_difficulty: results/parser_confidence/text_difficulty_features.jsonl
-  glove: assets/glove.840B.300d.txt                          # GloVe 840B 300d, used by RelCoh
+  glove: assets/glove.840B.300d.txt                          # GloVe 840B 300d, used by EntyRelCoh and RelCoh
   rel_embed: models/entyrelcoh/data/embeddings/rel_embed_glove.pkl
   cache: cache
   runs: runs
